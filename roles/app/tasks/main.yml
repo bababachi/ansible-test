@@ -1,0 +1,29 @@
+- include_vars: "all.yml"
+
+- include_vars: "staging.yml"
+  when: '"staging" in inventory_file'
+- include_vars: "production.yml"
+  when: '"production" in inventory_file'
+
+- name: install packages
+  yum:
+    name={{ item }}
+    update_cache=yes
+  with_items:
+    - httpd
+    - httpd-devel
+
+- name: template httpd.conf
+  template:
+    src=httpd.conf.j2
+    dest=/etc/httpd/conf/httpd.conf
+    owner=root
+    group=root
+    mode=0644
+
+- name: service restart
+  service:
+    name=httpd
+    enabled=yes
+    state=restarted
+  when: '"staging" in inventory_file'
